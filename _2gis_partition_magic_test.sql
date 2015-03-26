@@ -46,13 +46,3 @@ SELECT COUNT(*) FROM test_table_3;
 SELECT COUNT(*) FROM test_table_4;
 
 SELECT * FROM ONLY test_table;
-
-SELECT id & (pow(2, 32)-1)::bigint as real_id, id >> 47 as real_project_id, * FROM test_table;
-
-UPDATE test_table SET value = 'Item New Value 1' WHERE id = 140737488355329;
-
-SELECT * FROM test_table WHERE id = 140737488355329;
-
-UPDATE test_table SET value = 'Item Newest Value 1' WHERE id = 140737488355329 AND project_id = 140737488355329 >> 47;
-
-SELECT * FROM test_table WHERE id = 140737488355329 AND project_id = 140737488355329 >> 47;
