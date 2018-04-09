@@ -5,6 +5,7 @@ DECLARE
 	partition_id integer;
 	itable text;
 	partitionRes boolean;
+	lockHash integer := '_2gis_partition_magic_meta'::regclass::oid::integer;
 BEGIN
 	hasMeta := false;
 	FOR meta IN SELECT * FROM _2gis_partition_magic_meta m WHERE m.table_name = TG_TABLE_NAME
@@ -17,7 +18,11 @@ BEGIN
 		itable := meta.partition_table_prefix || partition_id::text;
 
 		IF ( NOT EXISTS ( SELECT 1 FROM pg_tables t WHERE t.schemaname = meta.schema_name AND t.tablename = itable ) ) THEN
-			partitionRes := _2gis_partition_magic(meta.parent_table_name, meta.action_field, partition_id, meta.schema_name, meta.partition_table_prefix, FALSE);
+			PERFORM pg_advisory_xact_lock(lockHash, lockHash);
+
+			IF ( NOT EXISTS ( SELECT 1 FROM pg_tables t WHERE t.schemaname = meta.schema_name AND t.tablename = itable ) ) THEN
+				partitionRes := _2gis_partition_magic(meta.parent_table_name, meta.action_field, partition_id, meta.schema_name, meta.partition_table_prefix, FALSE);
+			END IF;
 		END IF;
 
 		EXECUTE 'INSERT INTO ' || itable || ' VALUES (($1).*) ' USING NEW;
